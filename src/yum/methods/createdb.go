@@ -4,9 +4,20 @@ import "fmt"
 
 import (
     // sys "../../sys"
+    globalVars "../../"
 )
 
-func Create_db(db string, set string) (error) {
-      fmt.Println(db, set)
-      return nil
+type err interface {
+    Error() string
+}
+
+func Create_db()  error {
+      var db string = globalVars.Targetdb
+      var ymError err
+
+      dbConfig := getConfig( globalVars.Set )
+      if db != "" {
+          return nil
+      }
+      return yumError
 }

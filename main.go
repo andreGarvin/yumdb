@@ -3,6 +3,7 @@ package main
 import (
     "flag"
     "fmt"
+    "os"
 )
 
 import (
@@ -12,7 +13,7 @@ import (
     "./src/sys"
 
     "./src/yum"
-    // yumMethod "./src/yum/methods"
+    yumMethod "./src/yum/methods"
     // "src/yum/readDatabase"
     // "src/yum/setDatabase"
     // "src/yum/updateDatabase"
@@ -20,74 +21,50 @@ import (
 
     // "src/execute"
     // "src/execute/YumFunctions"
-
-)
-
-// commands/flags
-var (
-    targetdb string
-    set string
-
-    initialize bool
-
-    // format string
-    // yumFilePath string
-
-    // time bool
-    // script bool
 )
 
 func main() {
 
     // flags
-      flag.StringVar(&targetdb, "t", "", "Target")
-      flag.StringVar(&set, "set", "", "Set command is used for setting premission for you database, datatypes for data or other things.")
+    flag.StringVar(&globalVars.Action, "action", "", "This is comamnds to send to yumdb.")
+    flag.StringVar(&globalVars.Targetdb, "t", "", "Targets a dtatabase to use/inspect/create.")
+    flag.StringVar(&globalVars.Set, "set", "", "Set command is used for setting premission for you database, datatypes for data or other things.")
 
-      flag.BoolVar(&initialize, "init", false, "Initializies the yumdb store at the root folder.")
-
-      // main commands
-      // flag.StringVar(&help, "help", "", "List all the comands for yum db;\nAlso run `yum --help <command>` to get information for that command.")
+    flag.StringVar(&globalVars.Run, "run", "", "This runs a certain program or mode of developement; repl, prod, dev.")
+    flag.BoolVar(&globalVars.Initialize, "init", false, "Initializies the yumdb store at the root folder.")
 
     flag.Parse()
 
     if sys.FileExist(globalVars.DBPath) == false {
-        if initialize {
+        if globalVars.Initialize {
            yum.CreateYumStore()
-           fmt.Println("yum: yumdb was initialized and is ready to be used.")
         } else {
             fmt.Println("yum: yumdb was initialized, please run command `yum --init`.\nTo see other yum commands run `yum --help`.")
         }
     } else {
 
-        if len( flag.Args() ) != 0 {
-            // var ACTION string = flag.Args()[0]
-
-            fmt.Println(targetdb)
-            // payload := globalStructs.Payload { Targetdb: targetdb, Set: set, Args: flag.Args()[1:] }
-            // fmt.Println( payload )
-            // dispathAction(ACTION, flag.Args()[1:])
+        if len( os.Args ) != 0 {
+            dispathAction(globalVars.Action)
         } else {
             fmt.Println("yum: No command was given run command `yum --help` to see yum commands.")
         }
     }
 }
 
-func dispathAction( action string, paylaod []string ) {
-    // fmt.Println(action)
-    // fmt.Println(globalVars.Targetdb, globalVars.Set)
-    // switch action {
-    // case "CREATE":
-        // yumMethod.Create_db(globalVars.Targetdb, globalVars.Set)
-        // break;
+func dispathAction(action string) {
+
+    switch action {
+    case "CREATE":
+        yumMethod.Create_db()
+        break;
     // case "DROP":
     // case"ERASE":
     // case "MERGE":
     // case "UPDATE":
-    // default:
-    //     fmt.Printf("yum: command '%s' is unknown command in yum;\nRun command `yum --help` to see other commands.")
-    //     case "serve":
-    //     case "run":
-    // }
+    // case "SERVE":
+    default:
+        fmt.Printf("yum: command '%s' is unknown command in yum;\nRun command `yum --help` to see other commands.")
+    }
 }
 
 /*

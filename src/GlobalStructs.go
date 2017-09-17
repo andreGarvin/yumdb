@@ -8,3 +8,14 @@ type Payload struct {
 
     Args []string
 }
+
+
+type DBConfig struct {
+    Name string
+    Type string
+}
+
+type DBStruct {
+    Config *DBConfig
+
+}
