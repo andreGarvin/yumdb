@@ -1,21 +1,36 @@
 package src
 
 // Global structs
+
+// payload
 type Payload struct {
-    Targetdb string
-    RowName string
-    Set string
+    Coldef interface{}
 
-    Args []string
+    ColName string
+
+    Values []interface{}
+    Err error
 }
 
-
-type DBConfig struct {
-    Name string
+// columns defintion struct
+type ColumnsDef struct {
     Type string
+
+    Limit int
 }
 
-type DBStruct {
-    Config *DBConfig
+// the cofing struct
+type ConfigStruct struct {
+    TableName string
 
+    Size int
+
+    ColsStruct map[string]ColumnsDef
+}
+
+// the tbale struct
+type Table struct {
+    Config *ConfigStruct
+
+    Cols map[string] []interface{}
 }

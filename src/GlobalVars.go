@@ -1,22 +1,19 @@
 package src
 
-// Global Variables
-var (
-    DBPath string = "/./yumdb";
-    DatabaseInterface = make(map[string] []interface{});
-)
+// Global constant Variables
+const YumPath string = "/./yumdb";
 
 // commands/flags
 var (
-    Targetdb string
+    TargetTable string
     Action string
     Set string
     Run string
 
     Initialize bool
 
+    yumFilePath string
     // format string
-    // yumFilePath string
 
     // time bool
     // script bool

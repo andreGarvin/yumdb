@@ -15,14 +15,14 @@ import (
 
 func CreateYumStore() {
 
-    if err := sys.Mkdir(globalVars.DBPath); err != nil {
+    if err := sys.Mkdir(globalVars.YumPath); err != nil {
         fmt.Println(err)
     } else {
 
-        dbFiles := []string{ "db-logs.yum", "yum.json" }
+        storeFiles := []string{ "db-logs.yum", "yum.json" }
 
-        for _, i := range dbFiles {
-            path := filepath.Join( globalVars.DBPath, i )
+        for _, i := range storeFiles {
+            path := filepath.Clean(filepath.Join( globalVars.YumPath, i ))
 
             if err := sys.CreateFile(path, 0777); err != nil {
                 fmt.Printf("Could not create file %s\n", path)
