@@ -21,6 +21,7 @@ type ColumnsDef struct {
 
 // the cofing struct
 type ConfigStruct struct {
+    PrimaryKey string
     TableName string
 
     Size int

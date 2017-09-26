@@ -1,6 +1,8 @@
 adapters
 godocs
 
+tests
+
 test.go
 
 repl.js
