@@ -6,15 +6,15 @@ import (
     // "reflect"
     "strings"
     "errors"
-    "fmt"
+    // "fmt"
 
-    globalStruct "./src"
-    globalVar "./src"
-    "./src/sys"
+    globalStruct ".."
+    globalVar ".."
+    "../sys"
 )
 
 // The yumdb struct holding the table data fro the table file
-type yumdb struct {
+type Yumdb struct {
     // the table name
     TableName string
 
@@ -22,9 +22,21 @@ type yumdb struct {
     Table *globalStruct.Table
 }
 
+func included( arr []string, item string ) bool {
+     if len(arr) != 0 {
+        for _, i := range arr {
+            if i == item {
+               return true
+            }
+        }
+        return false
+     }
+     return false
+}
+
 // creates and constructs the the table file and returns back a struct of yumdb
-func Create_Table( tableName, set string ) ( *yumdb, error ) {
-      TableName = strings.Trim(tableName, " ")
+func Create_Table( tableName, set string ) ( *Yumdb, error ) {
+      tableName = strings.Trim(tableName, " ")
       set = strings.Trim(set, " ")
 
       if len(tableName) != 0 {
@@ -71,7 +83,7 @@ func Create_Table( tableName, set string ) ( *yumdb, error ) {
                   return nil, err
               }
 
-              return &yumdb{
+              return &Yumdb{
                   TableName: tableName,
                   Table: NewTable,
               }, nil
@@ -81,16 +93,31 @@ func Create_Table( tableName, set string ) ( *yumdb, error ) {
       return nil, errors.New("yum: Database name was not given; exit.")
 }
 
-// returns back the column of the given column name in a struct of type Payload
-func ( yum *yumdb ) ReadTableColumn( colName string ) *globalStruct.Payload {
+// retruns table struct from yumdb and a error
+func ( yum *Yumdb ) GetTable() ( *globalStruct.Table, error ) {
+
+      if yum.Table != nil {
+          return yum.Table, nil
+      }
+
+      yumTable, err := onLoadTable(yum.TableName)
+      if err != nil {
+          return nil, err
+      } else {
+          return yumTable.Table, nil
+      }
+}
+
+
+// retunrs back the column of the given column name in a struct of type Payload
+func ( yum *Yumdb ) ReadTableColumn( colName string ) *globalStruct.Payload {
       colName = strings.Trim(colName, " ")
+      respPayload := &globalStruct.Payload{
+          ColName: colName,
+          Err: nil,
+      }
 
-      if len(tableName) != 0 {
-
-          respPayload := &globalStruct.Payload{
-              ColName: colName,
-              Err: nil,
-          }
+      if len(colName) != 0 {
 
           if yum.Table != nil {
 
@@ -108,18 +135,71 @@ func ( yum *yumdb ) ReadTableColumn( colName string ) *globalStruct.Payload {
           }
 
 
-          yumTable, err := onLoadTable(colName)
+          yumTable, err := onLoadTable(yum.TableName)
           if err != nil {
               respPayload.Err = err
               return respPayload
           } else {
-              return yumTable.ReadTableColumn()
+              return yumTable.ReadTableColumn(colName)
           }
     }
+
+    respPayload.Err = errors.New("yum: No column name was.")
+    return respPayload
 }
 
-// returns backa string slice array of the column names in the file table
-func ( yum *yumdb ) getColNames() ( []string, error ) {
+// writes to the given column name and returns a error
+func ( yum *Yumdb ) WriteToTable( input map[string] interface{} ) error {
+
+      if yum.Table != nil {
+
+          getMapKeys := func( Map map[string] interface {} ) ( keys []string ) {
+                for k, _ := range Map {
+                    keys = append(keys, k)
+                }
+                return keys
+          }
+
+          colNames, err := yum.GetColNames()
+          if err != nil {
+              return err
+          }
+
+          if len(input) != 0 {
+             for e := 0; e < len(colNames); e++ {
+                 col := yum.Table.Cols[colNames[e]]
+
+                 if included(getMapKeys(input), colNames[e]) {
+                    col = append(col, input[colNames[e]])
+                 } else {
+                    col = append(col, nil)
+                }
+                yum.Table.Cols[colNames[e]] = col
+             }
+
+             tableFilePath := filepath.Clean( filepath.Join(
+                    // gets the path to the directory holding the table
+                    filepath.Clean( filepath.Join(globalVar.YumPath, yum.TableName) ),
+             yum.TableName + "_table.json") )
+
+             if err := sys.WriteJSONToFile(tableFilePath, yum.Table); err != nil {
+                return err
+             }
+             return nil
+          }
+          return errors.New("yum: no data was given")
+      }
+
+      yumTable, err := onLoadTable(yum.TableName)
+      if err != nil {
+          return err
+      } else {
+          return yumTable.WriteToTable(input)
+      }
+}
+
+// returns back a string slice array of the column names in the file table
+func ( yum *Yumdb ) GetColNames() ( []string, error ) {
       colNames := []string {}
 
       if yum.Table != nil {
@@ -134,17 +214,17 @@ func ( yum *yumdb ) getColNames() ( []string, error ) {
       if err != nil {
           return colNames, err
       } else {
-          return yumTable.getColNames()
+          return yumTable.GetColNames()
       }
 }
 
 
 // loads, parses, adn retruns back a struct if type yumdb
-func onLoadTable(tableName string) ( *yumdb, error ) {
-      TableName = strings.Trim(tableName, " ")
+func onLoadTable(tableName string) ( *Yumdb, error ) {
+      tableName = strings.Trim(tableName, " ")
 
       if len(tableName) != 0 {
-            yum := &yumdb{
+            yum := &Yumdb{
                 TableName: tableName,
             }
 
